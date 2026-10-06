@@ -33,6 +33,10 @@ export class InventoryPage {
   /** Adds the first `count` distinct inventory items to the cart, picked dynamically from whatever is rendered. */
   async addItemsToCart(count: number): Promise<CartItemSummary[]> {
     const added: CartItemSummary[] = [];
+
+    // `.count()` doesn't auto-wait; without this the inventory grid may not have
+    // rendered yet right after navigation, so count() races and returns 0.
+    await this.inventoryItems.first().waitFor();
     const total = await this.inventoryItems.count();
 
     for (let i = 0; i < Math.min(count, total); i++) {
