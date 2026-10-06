@@ -1,0 +1,21 @@
+{
+  "name": "ts-playwright-test-directory",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test tests/ui",
+    "test:api": "playwright test tests/api",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/cli": "^0.1.22",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.4"
+  }
+}
