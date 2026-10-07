@@ -1,34 +1,27 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../fixtures/credentials.fixture';
 import { BookingApi, type BookingData } from '../../helpers/utilities/booking-api.page';
 
 test.describe.serial('Booking lifecycle', () => {
   let bookingApi: BookingApi;
   let token: string;
   let bookingId: number;
-
-  const bookingData: BookingData = {
-    firstname: 'Jim',
-    lastname: 'Brown',
-    totalprice: 111,
-    depositpaid: true,
-    bookingdates: {
-      checkin: '2026-01-01',
-      checkout: '2026-01-05',
-    },
-    additionalneeds: 'Breakfast',
-  };
+  let bookingData: BookingData;
 
   test.beforeAll(async ({ playwright }) => {
     const request = await playwright.request.newContext();
     bookingApi = new BookingApi(request);
+    bookingData = BookingApi.buildBookingData();
   });
 
   test.afterAll(async () => {
     await bookingApi.request.dispose();
   });
 
-  test('1. Authentication - generates an auth token', async () => {
-    const response = await bookingApi.auth('admin', 'password123');
+  test('1. Authentication - generates an auth token', async ({ bookingApiCredentials }) => {
+    const response = await bookingApi.auth(
+      bookingApiCredentials.username,
+      bookingApiCredentials.password,
+    );
 
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
@@ -61,7 +54,7 @@ test.describe.serial('Booking lifecycle', () => {
       ...bookingData,
       bookingdates: {
         ...bookingData.bookingdates,
-        checkout: '2026-02-01',
+        checkout: BookingApi.nextCheckoutDate(bookingData.bookingdates.checkin),
       },
     };
 
@@ -71,7 +64,7 @@ test.describe.serial('Booking lifecycle', () => {
     const body = await response.json();
     expect(body).toMatchObject(updatedBookingData);
 
-    bookingData.bookingdates.checkout = updatedBookingData.bookingdates.checkout;
+    bookingData = updatedBookingData;
   });
 
   test('5. Delete Booking - deletes the booking and confirms removal', async () => {

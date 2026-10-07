@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../fixtures/credentials.fixture';
 import { LoginPage } from '../../helpers/page-objects/login.page';
 import { InventoryPage } from '../../helpers/page-objects/inventory.page';
 import { CartPage } from '../../helpers/page-objects/cart.page';
@@ -9,7 +9,10 @@ import { CheckoutCompletePage } from '../../helpers/page-objects/checkout-comple
 const ITEMS_TO_PURCHASE = 2;
 
 test.describe('Sauce Demo checkout flow', () => {
-  test('standard_user completes a purchase with two distinct items', async ({ page }) => {
+  test('standard_user completes a purchase with two distinct items', async ({
+    page,
+    sauceDemoCredentials,
+  }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
     const cartPage = new CartPage(page);
@@ -19,7 +22,7 @@ test.describe('Sauce Demo checkout flow', () => {
 
     await test.step('Login with standard_user', async () => {
       await loginPage.goto();
-      await loginPage.login('standard_user', 'secret_sauce');
+      await loginPage.login(sauceDemoCredentials.username, sauceDemoCredentials.password);
       await expect(page).toHaveURL(/inventory\.html/);
     });
 
@@ -40,9 +43,8 @@ test.describe('Sauce Demo checkout flow', () => {
       const cartSummaries = await cartPage.getCartSummaries(ITEMS_TO_PURCHASE);
 
       expect(cartSummaries).toHaveLength(ITEMS_TO_PURCHASE);
-      expect(cartSummaries.map((summary) => summary.name).sort()).toEqual(
-        addedItems.map((item) => item.name).sort(),
-      );
+      const toKey = (entry: { name: string; price: string }) => `${entry.name}|${entry.price}`;
+      expect(cartSummaries.map(toKey).sort()).toEqual(addedItems.map(toKey).sort());
       for (const summary of cartSummaries) {
         expect(summary.quantity).toBe('1');
       }
@@ -51,8 +53,7 @@ test.describe('Sauce Demo checkout flow', () => {
     await test.step('Complete the checkout form', async () => {
       await cartPage.checkout();
       await expect(page).toHaveURL(/checkout-step-one\.html/);
-
-      await checkoutInfoPage.fillInfo('Gerardo', 'Romero', '12345');
+      await checkoutInfoPage.fillInfo();
       await checkoutInfoPage.continueToOverview();
       await expect(page).toHaveURL(/checkout-step-two\.html/);
     });

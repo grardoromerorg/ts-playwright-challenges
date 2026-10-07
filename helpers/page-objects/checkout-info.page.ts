@@ -1,4 +1,11 @@
 import { type Locator, type Page } from '@playwright/test';
+import { faker } from '@faker-js/faker';
+
+export interface CheckoutInfo {
+  firstName: string;
+  lastName: string;
+  postalCode: string;
+}
 
 export class CheckoutInfoPage {
   readonly page: Page;
@@ -19,10 +26,18 @@ export class CheckoutInfoPage {
     this.errorMessage = page.locator('[data-test="error"]');
   }
 
-  async fillInfo(firstName: string, lastName: string, postalCode: string) {
-    await this.firstNameInput.fill(firstName);
-    await this.lastNameInput.fill(lastName);
-    await this.postalCodeInput.fill(postalCode);
+  async fillInfo(overrides: Partial<CheckoutInfo> = {}): Promise<CheckoutInfo> {
+    const info: CheckoutInfo = {
+      firstName: overrides.firstName ?? faker.person.firstName(),
+      lastName: overrides.lastName ?? faker.person.lastName(),
+      postalCode: overrides.postalCode ?? faker.location.zipCode(),
+    };
+
+    await this.firstNameInput.pressSequentially(info.firstName, { delay: 100 });
+    await this.lastNameInput.pressSequentially(info.lastName, { delay: 100 });
+    await this.postalCodeInput.pressSequentially(info.postalCode, { delay: 100 });
+
+    return info;
   }
 
   async continueToOverview() {

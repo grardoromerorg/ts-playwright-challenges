@@ -2,6 +2,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 
 export interface CartItemRow {
   name: string;
+  price: string;
   quantity: string;
 }
 
@@ -20,6 +21,10 @@ export class CartPage {
 
   itemName(item: Locator): Locator {
     return item.locator('[data-test="inventory-item-name"]');
+  }
+
+  itemPrice(item: Locator): Locator {
+    return item.locator('[data-test="inventory-item-price"]');
   }
 
   itemQuantity(item: Locator): Locator {
@@ -42,6 +47,7 @@ export class CartPage {
       const item = this.cartItems.nth(i);
       summaries.push({
         name: (await this.itemName(item).textContent()) ?? '',
+        price: (await this.itemPrice(item).textContent()) ?? '',
         quantity: (await this.itemQuantity(item).textContent()) ?? '',
       });
     }
